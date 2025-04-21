@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>高级3D陶瓷生成器</title>
+    <style>
+        body { 
+            margin: 0;
+            overflow: hidden; 
+            font-family: Arial, sans-serif;
+        }
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(25, 25, 25, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            width: 300px;
+            backdrop-filter: blur(5px);
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+        button {
+            background: #4CAF50;
+            border: none;
+            padding: 8px 15px;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <div class="control-group">
+            <h3>形态参数</h3>
+            <label>高度 <input type="range" id="height" min="1" max="15" step="0.1" value="6"></label>
+            <label>半径 <input type="range" id="radius" min="0.5" max="8" step="0.1" value="3"></label>
+            <label>曲率 <input type="range" id="curvature" min="-2" max="2" step="0.1" value="0.5"></label>
+            <label>厚度 <input type="range" id="thickness" min="0.1" max="1" step="0.05" value="0.3"></label>
+        </div>
+        
+        <div class="control-group">
+            <h3>外观设置</h3>
+            <label>颜色 <input type="color" id="color" value="#e0d8c3"></label>
+            <label>光泽度 <input type="range" id="shininess" min="0" max="200" value="120"></label>
+        </div>
+
+        <button onclick="generateWithAnimation()">生成新模型</button>
+        <button onclick="randomizeParameters()">随机参数</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        class CeramicGenerator {
+            constructor() {
+                this.initScene();
+                this.setupControls();
+                this.setupEventListeners();
+                this.generateCeramic();
+                this.animate();
+            }
+
+            initScene() {
+                // 场景基础设置
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x222222);
+
+                // 渲染器配置
+                this.renderer = new THREE.WebGLRenderer({ 
+                    antialias: true,
+                    powerPreference: "high-performance"
+                });
+                this.renderer.setPixelRatio(window.devicePixelRatio);
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.shadowMap.enabled = true;
+                document.body.appendChild(this.renderer.domElement);
+
+                // 相机设置
+                this.camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
+                this.camera.position.set(15, 10, 20);
+
+                // 灯光系统
+                this.setupLights();
+            }
+
+            setupLights() {
+                // 主光源
+                const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+                mainLight.position.set(10, 15, 10);
+                mainLight.castShadow = true;
+                this.scene.add(mainLight);
+
+                // 环境光
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.8);
+                this.scene.add(ambientLight);
+
+                // 背光
+                const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
+                backLight.position.set(-10, 5, -10);
+                this.scene.add(backLight);
+            }
+
+            setupControls() {
+                // 轨道控制器
+                this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+                this.controls.enableDamping = true;
+                this.controls.dampingFactor = 0.05;
+            }
+
+            generateCeramic(params = {}) {
+                // 移除旧模型
+                if (this.ceramic) {
+                    this.scene.remove(this.ceramic);
+                }
+
+                // 获取参数
+                const config = {
+                    height: parseFloat(document.getElementById('height').value),
+                    radius: parseFloat(document.getElementById('radius').value),
+                    curvature: parseFloat(document.getElementById('curvature').value),
+                    thickness: parseFloat(document.getElementById('thickness').value),
+                    color: document.getElementById('color').value,
+                    shininess: parseInt(document.getElementById('shininess').value)
+                };
+
+                // 高级形状生成算法
+                const points = this.calculateShapePoints(config);
+
+                // 创建几何体
+                const geometry = new THREE.LatheGeometry(points, 64);
+                
+                // 高级材质
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: config.color,
+                    metalness: 0.2,
+                    roughness: 0.1,
+                    clearcoat: 0.8,
+                    clearcoatRoughness: 0.1,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.95,
+                    shininess: config.shininess
+                });
+
+                // 创建网格
+                this.ceramic = new THREE.Mesh(geometry, material);
+                this.ceramic.castShadow = true;
+                this.ceramic.receiveShadow = true;
+                this.scene.add(this.ceramic);
+            }
+
+            calculateShapePoints(config) {
+                const points = [];
+                const segments = 32;
+                
+                for (let i = 0; i <= segments; i++) {
+                    const t = i / segments;
+                    const angle = t * Math.PI;
+                    
+                    // 高级曲线算法
+                    const y = config.height * (t - 0.5);
+                    const r = config.radius + 
+                             config.curvature * Math.sin(angle) + 
+                             0.2 * Math.sin(3 * angle) * config.thickness;
+                    
+                    points.push(new THREE.Vector2(
+                        Math.max(r, 0.1),  // 防止负半径
+                        y
+                    ));
+                }
+                return points;
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                this.controls.update();
+                this.renderer.render(this.scene, this.camera);
+            }
+
+            setupEventListeners() {
+                // 响应式窗口
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = window.innerWidth / window.innerHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                // 参数实时更新
+                document.querySelectorAll('input').forEach(input => {
+                    input.addEventListener('input', () => this.generateCeramic());
+                });
+            }
+        }
+
+        // 初始化生成器
+        const generator = new CeramicGenerator();
+
+        // 生成动画
+        function generateWithAnimation() {
+            gsap.to(generator.ceramic.rotation, {
+                y: generator.ceramic.rotation.y + Math.PI*2,
+                duration: 1.5,
+                ease: "power2.inOut"
+            });
+        }
+
+        // 随机参数生成
+        function randomizeParameters() {
+            const randomValue = (min, max, step) => 
+                (Math.floor(Math.random() * ((max - min)/step + 1)) * step + min).toFixed(1);
+
+            document.getElementById('height').value = randomValue(3, 12, 0.5);
+            document.getElementById('radius').value = randomValue(1, 6, 0.5);
+            document.getElementById('curvature').value = randomValue(-1.5, 1.5, 0.1);
+            document.getElementById('thickness').value = randomValue(0.1, 0.8, 0.05);
+            document.getElementById('color').value = '#' + 
+                Math.floor(Math.random()*16777215).toString(16);
+            document.getElementById('shininess').value = Math.floor(Math.random()*150 + 50);
+            
+            generator.generateCeramic();
+        }
+    </script>
+</body>
+</html>

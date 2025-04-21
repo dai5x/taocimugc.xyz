@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>民宿预定</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        form {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        form input, form select, form textarea, form button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        form button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        form button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>民宿预定</h1>
+    </header>
+    <form action="/submit-reservation" method="POST">
+        <label for="name">姓名</label>
+        <input type="text" id="name" name="name" placeholder="请输入您的姓名" required>
+
+        <label for="email">邮箱</label>
+        <input type="email" id="email" name="email" placeholder="请输入您的邮箱" required>
+
+        <label for="phone">联系电话</label>
+        <input type="tel" id="phone" name="phone" placeholder="请输入您的联系电话" required>
+
+        <label for="checkin">入住日期</label>
+        <input type="date" id="checkin" name="checkin" required>
+
+        <label for="checkout">退房日期</label>
+        <input type="date" id="checkout" name="checkout" required>
+
+        <label for="guests">入住人数</label>
+        <select id="guests" name="guests" required>
+            <option value="1">1人</option>
+            <option value="2">2人</option>
+            <option value="3">3人</option>
+            <option value="4">4人</option>
+            <option value="5">5人</option>
+            <option value="6">6人及以上</option>
+        </select>
+
+        <label for="message">备注信息</label>
+        <textarea id="message" name="message" rows="4" placeholder="请输入任何特殊要求"></textarea>
+
+        <button type="submit">提交预定</button>
+    </form>
+</body>
+</html>
